@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atendimento Automático - Loja de Relógios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #1e1e1e;
+      color: #f1f1f1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .chat-container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+
+    .chat-box {
+      width: 100%;
+      height: calc(100% - 60px);
+      overflow-y: auto;
+      background-color: #2c2c2c;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    }
+
+    .message {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 10px;
+      max-width: 80%;
+      opacity: 0;
+      animation: fadeIn 1s forwards;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      flex-direction: row;
+    }
+
+    .message.guest {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-text p {
+      background-color: #333;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 250px;
+      word-wrap: break-word;
+    }
+
+    .message.guest .message-text p {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .message.bot .message-text p {
+      background-color: #444;
+      color: white;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .input-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      background-color: #2c2c2c;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      opacity: 1;
+      transition: opacity 1s ease-out;
+    }
+
+    .input-box input {
+      width: 75%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #666;
+      background-color: #444;
+      color: white;
+    }
+
+    .input-box button {
+      padding: 10px 15px;
+      background-color: #3e4b56;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .input-box button:hover {
+      background-color: #2c353e;
+      transform: scale(1.05);
+    }
+
+    .menu-button {
+      background-color: #444;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      margin: 5px;
+      cursor: pointer;
+      width: 200px;
+      transition: background-color 0.3s ease;
+    }
+
+    .menu-button:hover {
+      background-color: #333;
+    }
+
+    .close-button {
+      background-color: #444;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      margin: 5px;
+      cursor: pointer;
+      width: 200px;
+      transition: background-color 0.3s ease;
+    }
+
+    .close-button:hover {
+      background-color: #333;
+    }
+
+    @media (max-width: 600px) {
+      .chat-container {
+        width: 100%;
+        max-width: 100%;
+        padding: 5px;
+      }
+
+      .chat-box {
+        padding: 5px;
+      }
+    }
+
+    .about-message {
+      background-color: #333;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 500px;
+      margin: 10px 0;
+      color: #f1f1f1;
+    }
+
+    .about-message .close-button {
+      background-color: #f44336;
+      padding: 5px 10px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="chat-container">
+    <div class="chat-box" id="chat-box">
+      <div class="message bot" id="bot-welcome">
+        <div class="message-text">
+          <p>Olá! Eu sou o assistente virtual da nossa loja de relógios. Qual o seu nome?</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="input-box" id="input-box">
+      <input type="text" id="user-input" placeholder="Digite seu nome..." onkeydown="if(event.key === 'Enter'){sendMessage();}">
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    let userName = '';
+    let step = 0;
+
+    function sendMessage() {
+      let userInput = document.getElementById('user-input').value;
+      if (userInput.trim() !== "") {
+        addMessage(userInput, 'guest');
+        document.getElementById('user-input').value = "";
+        setTimeout(() => {
+          handleBotResponse(userInput);
+        }, 1000);
+      }
+    }
+
+    function addMessage(message, sender, isFAQ = false) {
+      const chatBox = document.getElementById('chat-box');
+      const messageDiv = document.createElement('div');
+      messageDiv.classList.add('message', sender);
+      messageDiv.innerHTML = `
+        <div class="message-text">
+          <p>${message}</p>
+          ${isFAQ ? '<button class="close-button" onclick="closeMessage(this)">Fechar</button>' : ''}
+        </div>
+      `;
+      chatBox.appendChild(messageDiv);
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      const chatBox = document.getElementById('chat-box');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function closeMessage(button) {
+      const messageDiv = button.closest('.message');
+      messageDiv.remove();
+      scrollToBottom();
+    }
+
+    function handleBotResponse(userInput) {
+      if (step === 0) {
+        userName = userInput.trim();
+        const currentTime = new Date().getHours();
+        let greeting = '';
+        if (currentTime >= 4 && currentTime < 12) {
+          greeting = 'Bom dia';
+        } else if (currentTime >= 12 && currentTime < 18) {
+          greeting = 'Boa tarde';
+        } else {
+          greeting = 'Boa noite';
+        }
+
+        const botResponse = `${greeting}, ${userName}! Como posso ajudar você hoje?`;
+        addMessage(botResponse, 'bot');
+        step = 1;
+
+        setTimeout(() => {
+          document.getElementById('input-box').style.opacity = '0';
+          setTimeout(() => {
+            document.getElementById('input-box').style.display = 'none';
+            showMainMenu();
+          }, 1000);
+        }, 1500);
+      } else {
+        processMenuOptions(userInput);
+      }
+    }
+
+    function showMainMenu() {
+      const botResponse = `Selecione a opção desejada:`;
+      addMessage(botResponse, 'bot');
+      const menuDiv = document.createElement('div');
+      menuDiv.classList.add('bot');
+      menuDiv.innerHTML = `
+        <button class="menu-button" onclick="showFAQMenu()">Perguntas Frequentes</button>
+        <button class="menu-button" onclick="showAbout()">Sobre</button>
+        <button class="menu-button" onclick="startOrder()">Fazer Pedido</button>
+      `;
+      document.getElementById('chat-box').appendChild(menuDiv);
+      scrollToBottom();
+    }
+
+    function startOrder() {
+      const botResponse = `${userName}, irei te redirecionar para o WhatsApp para mais informações!`;
+      addMessage(botResponse, 'bot');
+      setTimeout(() => {
+        const whatsappLink = "https://wa.me/15551234567?text=Olá!%20Gostaria%20de%20mais%20informações%20sobre%20relógios.";
+        window.location.href = whatsappLink;
+      }, 6000);
+    }
+
+    function showFAQMenu() {
+      document.getElementById('chat-box').innerHTML = '';
+      const faqMenu = `
+        <button class="menu-button" onclick="showAnswer('Que tipo de relógio vocês tem?')">Que tipo de relógio vocês tem?</button>
+        <button class="menu-button" onclick="showAnswer('Quais são os tipos de relógios disponíveis?')">Quais são os tipos de relógios disponíveis?</button>
+        <button class="menu-button" onclick="showAnswer('O que é um relógio automático?')">O que é um relógio automático?</button>
+        <button class="menu-button" onclick="showAnswer('Posso usar meu relógio ao nadar ou mergulhar?')">Posso usar meu relógio ao nadar ou mergulhar?</button>
+        <button class="menu-button" onclick="showAnswer('Quais os cuidados essenciais para manter meu relógio funcionando por mais tempo?')">Quais os cuidados essenciais para manter meu relógio funcionando por mais tempo?</button>
+        <button class="menu-button" onclick="showAnswer('Meu relógio parou, o que devo fazer?')">Meu relógio parou, o que devo fazer?</button>
+        <button class="menu-button" onclick="showAnswer('Quais os cuidados com o Relógio?')">Quais os cuidados com o Relógio?</button>
+        <button class="menu-button" onclick="showAnswer('O que está incluído na garantia do meu relógio?')">O que está incluído na garantia do meu relógio?</button>
+        <button class="menu-button" onclick="showAnswer('Quais são os métodos de pagamento aceitos?')">Quais são os métodos de pagamento aceitos?</button>
+        <button class="menu-button" onclick="showAnswer('Quais são as opções de envio disponíveis?')">Quais são as opções de envio disponíveis?</button>
+        <button class="close-button" onclick="closeFAQ()">Fechar Perguntas Frequentes</button>
+      `;
+      addMessage(faqMenu, 'bot');
+      scrollToBottom();
+    }
+
+    function showAnswer(question) {
+      let answer = '';
+      switch (question) {
+        case 'Que tipo de relógio vocês tem?':
+          answer = 'Temos relógios de diversas marcas, modelos e estilos. Qual o seu estilo preferido?';
+          break;
+        case 'Quais são os tipos de relógios disponíveis?':
+          answer = 'Oferecemos modelos automáticos, cronógrafos e digitais.';
+          break;
+        case 'O que é um relógio automático?':
+          answer = 'Relógios automáticos são movidos pelo movimento do pulso, não necessitam de bateria.';
+          break;
+        case 'Posso usar meu relógio ao nadar ou mergulhar?':
+          answer = 'Isso depende do modelo, alguns são à prova d\'água, outros são apenas resistentes à água.';
+          break;
+        case 'Quais os cuidados essenciais para manter meu relógio funcionando por mais tempo?':
+          answer = 'Evite quedas, expor a luz direta do sol por muito tempo e manter a manutenção regular.';
+          break;
+        case 'Meu relógio parou, o que devo fazer?':
+          answer = 'Pode ser que a bateria tenha acabado ou o mecanismo tenha travado, consulte um técnico.';
+          break;
+        case 'Quais os cuidados com o Relógio?':
+          answer = 'Evite quedas, expor a luz direta do sol por muito tempo e manutenção periódica.';
+          break;
+        case 'O que está incluído na garantia do meu relógio?':
+          answer = 'A garantia cobre defeitos de fabricação e problemas mecânicos, desde que dentro do prazo e condições.';
+          break;
+        case 'Quais são os métodos de pagamento aceitos?':
+          answer = 'Aceitamos cartões de crédito, débito e pagamentos via transferência bancária.';
+          break;
+        case 'Quais são as opções de envio disponíveis?':
+          answer = 'Oferecemos envio por correios e transportadoras, com opções de frete expresso e normal.';
+          break;
+        default:
+          answer = 'Desculpe, não entendi sua pergunta.';
+          break;
+      }
+
+      addMessage(answer, 'bot', true);
+      scrollToBottom();
+    }
+
+    function closeFAQ() {
+      document.getElementById('chat-box').innerHTML = '';
+      showMainMenu();
+    }
+
+    function showAbout() {
+      const aboutText = `
+        <div class="about-message">
+          <p>Acreditamos que o tempo é o bem mais precioso que possuímos. Com base em dois pilares fundamentais — <strong>elegância</strong> e <strong>precisão</strong> — nos dedicamos a oferecer relógios de qualidade superior, que unem sofisticação e funcionalidade para acompanhar cada momento da sua vida.</p>
+          <p>Nosso catálogo exclusivo conta com 5 coleções premium, que vão desde modelos clássicos e atemporais até os mais modernos e arrojados, garantindo que cada cliente encontre o relógio perfeito, que reflete seu estilo único e necessidades pessoais. Trabalhamos exclusivamente com produtos autênticos, assegurando excelência e durabilidade em cada peça.</p>
+          <p>Nosso compromisso vai além da venda de relógios: queremos proporcionar uma experiência única, onde <strong>cada segundo conta</strong>. Afinal, o tempo é o seu maior aliado.</p>
+          <button class="close-button" onclick="closeMessage(this)">Fechar</button>
+        </div>
+      `;
+      addMessage(aboutText, 'bot', true);
+      scrollToBottom();
+    }
+  </script>
+</body>
+
+</html>
