@@ -121,6 +121,7 @@
       background-color: #2c353e;
       transform: scale(1.05);
     }
+    
 
     .menu-button {
       background-color: #444;
@@ -153,6 +154,27 @@
     .close-button:hover {
       background-color: #333;
     }
+    .input-box {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2c2c2c;
+  padding: 10px;
+  box-sizing: border-box;
+  border-top: 1px solid #666;
+  z-index: 1000;
+}
+
+@supports (-webkit-touch-callout: none) { 
+  .input-box {
+    bottom: env(safe-area-inset-bottom);
+  }
+}
+
 
     @media (max-width: 600px) {
       .chat-container {
@@ -378,7 +400,18 @@
       document.getElementById('chat-box').innerHTML = '';
       showMainMenu();
     }
+function adjustForKeyboard() {
+  const chatBox = document.querySelector('.chat-box');
+  window.addEventListener('resize', () => {
+    if (window.innerHeight < 500) { 
+      chatBox.style.height = '50vh'; // Reduz o chat para encaixar o teclado
+    } else {
+      chatBox.style.height = 'calc(100vh - 60px)'; // Restaura o tamanho normal
+    }
+  });
+}
 
+adjustForKeyboard();
     function showAbout() {
       const aboutText = `
         <div class="about-message">
