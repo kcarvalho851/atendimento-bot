@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Atendimento Automático - Loja de Relógios</title>
   <style>
+    /* Estilos gerais */
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -121,7 +122,6 @@
       background-color: #2c353e;
       transform: scale(1.05);
     }
-    
 
     .menu-button {
       background-color: #444;
@@ -154,75 +154,31 @@
     .close-button:hover {
       background-color: #333;
     }
-    .input-box {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #2c2c2c;
-  padding: 10px;
-  box-sizing: border-box;
-  border-top: 1px solid #666;
-  z-index: 1000;
-}
 
-@supports (-webkit-touch-callout: none) { 
-  .input-box {
-    bottom: env(safe-area-inset-bottom);
-  }
-}
-
-
-    @media (max-width: 600px) {
-      .chat-container {
-        width: 100%;
-        max-width: 100%;
-        padding: 5px;
-      }
-
-      .chat-box {
-        padding: 5px;
-      }
-    }
-
-    .about-message {
+    /* Estilos específicos para o menu Mais Vendidos */
+    .product-card {
       background-color: #333;
-      padding: 20px;
-      border-radius: 10px;
-      max-width: 500px;
-      margin: 10px 0;
-      color: #f1f1f1;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px;
+      text-align: center;
+      width: 250px;
     }
 
-    .about-message .close-button {
+    .product-card img {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .product-card p {
+      color: white;
+      margin-top: 10px;
+    }
+
+    .product-card .close-button {
       background-color: #f44336;
       padding: 5px 10px;
       margin-top: 10px;
-
-      .input-box {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background-color: #2c2c2c;
-        padding: 10px;
-        box-sizing: border-box;
-        border-top: 1px solid #666;
-      }
-
-      .chat-box {
-        height: calc(100vh - 60px);
-        /* Ajusta o espaço para a input-box */
-        overflow-y: auto;
-        padding-bottom: 10px;
-      }
-
     }
   </style>
 </head>
@@ -265,7 +221,7 @@
       messageDiv.innerHTML = `
         <div class="message-text">
           <p>${message}</p>
-          ${isFAQ ? '<button class="close-button" onclick="closeMessage(this)">Fechar</button>' : ''}
+          ${isFAQ ? '<button class="close-button" onclick="closeMessage(this)">Fechar</button>' : ''} 
         </div>
       `;
       chatBox.appendChild(messageDiv);
@@ -321,8 +277,19 @@
         <button class="menu-button" onclick="showFAQMenu()">Perguntas Frequentes</button>
         <button class="menu-button" onclick="showAbout()">Sobre</button>
         <button class="menu-button" onclick="startOrder()">Fazer Pedido</button>
+        <button class="menu-button" onclick="showBestSellers()">Mais Vendidos 🔥</button>
       `;
       document.getElementById('chat-box').appendChild(menuDiv);
+      scrollToBottom();
+    }
+
+    function showAbout() {
+      const aboutMessage = `
+        Na Carvalho Watches, acreditamos que o tempo é mais do que apenas horas e minutos é uma expressão de estilo, elegância e pontualidade. Nossa missão é oferecer relógios de alta qualidade, combinando design sofisticado com precisão e durabilidade.
+
+        Inspirados na resistência e nobreza do carvalho, selecionamos cuidadosamente cada modelo para atender desde os apaixonados por relógios clássicos até aqueles que buscam inovação e tecnologia. Seja para um evento especial, para o dia a dia ou para presentear alguém especial, temos o relógio perfeito para cada momento.
+      `;
+      addMessage(aboutMessage, 'bot', true);
       scrollToBottom();
     }
 
@@ -330,7 +297,7 @@
       const botResponse = `${userName}, irei te redirecionar para o WhatsApp para mais informações!`;
       addMessage(botResponse, 'bot');
       setTimeout(() => {
-        const whatsappLink = "https://w.app/zmgsis.";
+        const whatsappLink = "https://w.app/zmgsis";
         window.location.href = whatsappLink;
       }, 6000);
     }
@@ -382,10 +349,10 @@
           answer = 'A garantia cobre defeitos de fabricação e problemas mecânicos, desde que dentro do prazo e condições.';
           break;
         case 'Quais são os métodos de pagamento aceitos?':
-          answer = 'Aceitamos cartões de crédito, débito e pagamentos via transferência bancária.';
+          answer = 'Aceitamos cartões de crédito, débito e pagamentos via PIX.';
           break;
         case 'Quais são as opções de envio disponíveis?':
-          answer = 'Oferecemos envio por correios e transportadoras, com opções de frete expresso e normal.';
+          answer = 'Taxa para a Região de Brotas R$12,00 (Para outras regiões a ser calculado), ou você pode retirar na loja.';
           break;
         default:
           answer = 'Desculpe, não entendi sua pergunta.';
@@ -400,28 +367,36 @@
       document.getElementById('chat-box').innerHTML = '';
       showMainMenu();
     }
-function adjustForKeyboard() {
-  const chatBox = document.querySelector('.chat-box');
-  window.addEventListener('resize', () => {
-    if (window.innerHeight < 500) { 
-      chatBox.style.height = '50vh'; // Reduz o chat para encaixar o teclado
-    } else {
-      chatBox.style.height = 'calc(100vh - 60px)'; // Restaura o tamanho normal
-    }
-  });
-}
 
-adjustForKeyboard();
-    function showAbout() {
-      const aboutText = `
-        <div class="about-message">
-          <p>Acreditamos que o tempo é o bem mais precioso que possuímos. Com base em dois pilares fundamentais — <strong>elegância</strong> e <strong>precisão</strong> — nos dedicamos a oferecer relógios de qualidade superior, que unem sofisticação e funcionalidade para acompanhar cada momento da sua vida.</p>
-          <p>Nosso catálogo exclusivo conta com coleções premium, que vão desde modelos clássicos e atemporais até os mais modernos e arrojados, garantindo que cada cliente encontre o relógio perfeito, que reflete seu estilo único e necessidades pessoais. Trabalhamos exclusivamente com produtos autênticos, assegurando excelência e durabilidade em cada peça.</p>
-          <p>Nosso compromisso vai além da venda de relógios: queremos proporcionar uma experiência única, onde <strong>cada segundo conta</strong>. Afinal, o tempo é o seu maior aliado.</p>
+    function showBestSellers() {
+      const bestSellers = `
+        <div class="product-card">
+          <img src="imagens/swatchironydourado.png" alt="Swatch Irony Dourado">
+          <p>1º - Swatch Irony Dourado 🔥<br>Clássico, sofisticado e atemporal. O Swatch Irony dourado combina elegância e modernidade para quem quer estar sempre no tempo certo.⌚✨</p>
+          <button class="close-button" onclick="closeMessage(this)">Fechar</button>
+        </div>
+        <div class="product-card">
+          <img src="imagens/citizenmeialua.png" alt="Citizen Meia Lua">
+          <p>2º - Citizen Meia Lua 🔥<br>Precisão e estilo em cada detalhe. O Citizen Meia Lua é a escolha perfeita para quem valoriza sofisticação e desempenho. ⌚🌙</p>
+          <button class="close-button" onclick="closeMessage(this)">Fechar</button>
+        </div>
+        <div class="product-card">
+          <img src="imagens/citizenorca.png" alt="Citizen Orca">
+          <p>3º - Citizen Orca 🔥<br>Resistência e design inspirados na natureza. O Citizen Orca une desempenho e estilo para quem busca aventura. ⌚🐋</p>
+          <button class="close-button" onclick="closeMessage(this)">Fechar</button>
+        </div>
+                <div class="product-card">
+          <img src="imagens/citizenaqualand.png" alt="Citizen Aqualand">
+          <p>4º - Citizen Aqualand 🔥<br>O relógio que acompanha suas maiores aventuras. ⌚🌊</p>
+          <button class="close-button" onclick="closeMessage(this)">Fechar</button>
+        </div>
+                <div class="product-card">
+          <img src="imagens/invictahybrid.png" alt="Invicta Hybrid Venom">
+          <p>5º - Invicta Hybrid Venom 🔥<br> Robustez e estilo em perfeita harmonia. O Invicta Hybrid Venom destaca-se pelo seu design imponente e funcionalidades avançadas, ideal para quem busca presença e precisão no pulso. ⌚🔥</p>
           <button class="close-button" onclick="closeMessage(this)">Fechar</button>
         </div>
       `;
-      addMessage(aboutText, 'bot', true);
+      addMessage(bestSellers, 'bot');
       scrollToBottom();
     }
   </script>
